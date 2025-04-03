@@ -6,3 +6,4 @@ langchain-community==0.3.20
 langchain-openai==0.3.11
 langchain-core==0.3.49
 PyMuPDF==1.25.5
+faiss-cpu==1.10.0
