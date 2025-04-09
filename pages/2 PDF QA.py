@@ -52,7 +52,8 @@ def select_model(temperature=0):
 def init_qa_chain():
     llm = select_model()
     prompt = ChatPromptTemplate.from_template("""
-    以下の前提知識を用いて、ユーザーからの質問に答えてください。
+    あなたはユーザーの求める条件にあった観光地を提案するアシスタントです。
+    以下の前提知識(観光地のパンフレット)を用いて、ユーザーからの質問に答えてください。
 
     ===
     前提知識
