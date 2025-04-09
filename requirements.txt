@@ -7,7 +7,7 @@ langchain-openai==0.3.11
 langchain-core==0.3.49
 PyMuPDF==1.25.5
 faiss-cpu==1.10.0
-duckduckgo_search==2025.4.4
+duckduckgo_search==8.0.0
 html2text==2024.2.26
 readability-lxml==0.8.1
 lxml_html_clean==0.4.1
