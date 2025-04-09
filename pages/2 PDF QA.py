@@ -2,19 +2,25 @@ import streamlit as st
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+from langchain.agents import create_tool_calling_agent, AgentExecutor
+from langchain.memory import ConversationBufferWindowMemory
+from langchain_core.prompts import MessagesPlaceholder, ChatPromptTemplate
+from langchain_core.runnables import RunnableConfig
+from langchain_community.callbacks import StreamlitCallbackHandler
 
 # models
 from langchain_openai import ChatOpenAI
 
-###### dotenv を利用しない場合は消してください ######
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    import warnings
-    warnings.warn("dotenv not found. Please make sure to set your environment variables manually.", ImportWarning)
-################################################
+# custom tools
+from tools.search_ddg import search_ddg
+from tools.fetch_page import fetch_page
 
+import os
+
+os.environ["LANGCHAIN_TRACING"] = "true"
+os.environ["LANGCHAIN_PROJECT"] = "jobtaskapp"
+os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGCHAIN_API_KEY"] = "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"
 
 def init_page():
     st.set_page_config(
@@ -65,39 +71,12 @@ def init_qa_chain():
     return chain
 
 
-# def page_ask_my_pdf():
-#     chain = init_qa_chain()
-
-#     if query := st.text_input("PDFへの質問を書いてね: ", key="input"):
-#         st.markdown("## Answer")
-#         st.write_stream(chain.stream(query))
 
 
 
-
-# GitHub: https://github.com/naotaka1128/llm_app_codes/chapter_009/main.py
-from langchain.agents import create_tool_calling_agent, AgentExecutor
-from langchain.memory import ConversationBufferWindowMemory
-from langchain_core.prompts import MessagesPlaceholder, ChatPromptTemplate
-from langchain_core.runnables import RunnableConfig
-from langchain_community.callbacks import StreamlitCallbackHandler
-
-
-# custom tools
-from tools.search_ddg import search_ddg
-from tools.fetch_page import fetch_page
-
-###### dotenv を利用しない場合は消してください ######
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    import warnings
-    warnings.warn("dotenv not found. Please make sure to set your environment variables manually.", ImportWarning)
-################################################
 
 CUSTOM_SYSTEM_PROMPT = """
-あなたは、ユーザーのリクエストに基づいてインターネットで調べ物を行うアシスタントです。
+あなたは、ユーザーのリクエストに基づいた観光地をインターネットで調べ提供するアシスタントです。
 利用可能なツールを使用して、調査した情報を説明してください。
 既に知っていることだけに基づいて答えないでください。回答する前にできる限り検索を行ってください。
 (ユーザーが読むページを指定するなど、特別な場合は、検索する必要はありません。)
@@ -142,14 +121,6 @@ def init_messages():
             memory_key="chat_history",
             k=10
         )
-
-        # このようにも書ける
-        # from langchain_community.chat_message_histories import StreamlitChatMessageHistory
-        # msgs = StreamlitChatMessageHistory(key="special_app_key")
-        # st.session_state['memory'] = ConversationBufferMemory(memory_key="history", chat_memory=msgs)
-
-
-
     
 
 def create_agent():

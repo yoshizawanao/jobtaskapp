@@ -4,16 +4,6 @@ from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-###### dotenv を利用しない場合は消してください ######
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    import warnings
-    warnings.warn("dotenv not found. Please make sure to set your environment variables manually.", ImportWarning)
-################################################
-
-
 def init_page():
     st.set_page_config(
         page_title="Upload PDF(s)",
@@ -31,18 +21,20 @@ def init_messages():
 def get_pdf_text():
     # file_uploader でPDFをアップロードする
     # (file_uploaderの詳細な説明は第6章をご参照ください)
-    pdf_file = st.file_uploader(
+    pdf_files = st.file_uploader(
         label='Upload your PDF 😇',
-        type='pdf'  # PDFファイルのみアップロード可
+        type='pdf',  # PDFファイルのみアップロード可
+        accept_multiple_files=True
     )
-    if pdf_file:
+    if pdf_files:
         pdf_text = ""
         with st.spinner("Loading PDF ..."):
             # PyMuPDFでPDFを読み取る
             # (詳細な説明はライブラリの公式ページなどをご参照ください)
-            pdf_doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
-            for page in pdf_doc:
-                pdf_text += page.get_text()
+            for pdf_file in pdf_files:
+                pdf_doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
+                for page in pdf_doc:
+                    pdf_text += page.get_text()
 
         # RecursiveCharacterTextSplitter でチャンクに分割する
         # (詳細な説明は第6章をご参照ください)

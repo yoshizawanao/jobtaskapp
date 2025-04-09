@@ -3,6 +3,7 @@ from duckduckgo_search import DDGS
 from langchain_core.tools import tool
 from langchain_core.pydantic_v1 import (BaseModel, Field)
 
+
 class SearchDDGInput(BaseModel):
     query: str = Field(description="検索したいキーワードを入力してください")
 
