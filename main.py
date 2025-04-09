@@ -3,7 +3,7 @@ import streamlit as st
 
 def init_page():
     st.set_page_config(
-        page_title="Ask AI adviser"
+        page_title="Ask AI adviser",
         page_icon="🧐"
     )
     st.header("Ask AI adviser 🧐")

@@ -23,20 +23,21 @@ def init_page():
     )
     st.sidebar.title("Options")
 
-def select_model():
-    models = ("GPT-4", "GPT-3.5 (not recommended)")
-    model = st.sidebar.radio("Choose a model:", models)
-    if model == "GPT-3.5 (not recommended)":
-        return ChatOpenAI(
-            temperature=0, model_name="gpt-3.5-turbo")
-    elif model == "GPT-4":
-        return ChatOpenAI(
-            temperature=0, model_name="gpt-4o")
+# def select_model():
+#     models = ("GPT-4", "GPT-3.5 (not recommended)")
+#     model = st.sidebar.radio("Choose a model:", models)
+#     if model == "GPT-3.5 (not recommended)":
+#         return ChatOpenAI(
+#             temperature=0, model_name="gpt-3.5-turbo")
+#     elif model == "GPT-4":
+#         return ChatOpenAI(
+#             temperature=0, model_name="gpt-4o")
 
 
 
 def init_qa_chain():
-    llm = select_model()
+    # llm = select_model()
+    llm = ChatOpenAI(temperature=0, model_name="gpt-4o")
     prompt = ChatPromptTemplate.from_template("""
     あなたはユーザーの求める条件にあった観光地を提案するアシスタントです。
     以下の前提知識(観光地のパンフレット)を用いて、ユーザーからの質問に答えてください。
@@ -64,12 +65,12 @@ def init_qa_chain():
     return chain
 
 
-def page_ask_my_pdf():
-    chain = init_qa_chain()
+# def page_ask_my_pdf():
+#     chain = init_qa_chain()
 
-    if query := st.text_input("PDFへの質問を書いてね: ", key="input"):
-        st.markdown("## Answer")
-        st.write_stream(chain.stream(query))
+#     if query := st.text_input("PDFへの質問を書いてね: ", key="input"):
+#         st.markdown("## Answer")
+#         st.write_stream(chain.stream(query))
 
 
 
@@ -159,7 +160,8 @@ def create_agent():
         ("user", "{input}"),
         MessagesPlaceholder(variable_name="agent_scratchpad")
     ])
-    llm = select_model()
+    # llm = select_model()
+    llm = ChatOpenAI(temperature=0, model_name="gpt-4o")
     agent = create_tool_calling_agent(llm, tools, prompt)
     return AgentExecutor(
         agent=agent,
@@ -173,17 +175,20 @@ def main():
     init_page()
     init_messages()
     st.title("PDF QA 🧐")
-    if "vectorstore" not in st.session_state:
-        st.warning("まずは 📄 Upload PDF(s) からPDFファイルをアップロードしてね")
-    else:
-        page_ask_my_pdf()
+    # if "vectorstore" not in st.session_state:
+    #     st.warning("まずは 📄 Upload PDF(s) からPDFファイルをアップロードしてね")
+    # else:
+        # page_ask_my_pdf()
     web_browsing_agent = create_agent()
 
     for msg in st.session_state['memory'].chat_memory.messages:
         st.chat_message(msg.type).write(msg.content)
 
     if prompt := st.chat_input(placeholder="2023 FIFA 女子ワールドカップの優勝国は？"):
+        chain = init_qa_chain()
         st.chat_message("user").write(prompt)
+        st.markdown("## Answer")
+        st.write_stream(chain.stream(prompt))
 
         with st.chat_message("assistant"):
             # コールバック関数の設定 (エージェントの動作の可視化用)
