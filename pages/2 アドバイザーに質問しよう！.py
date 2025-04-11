@@ -77,7 +77,7 @@ def init_qa_chain(llm):
 
 
 
-CUSTOM_SYSTEM_PROMPT = """
+CUSTOM_SYSTEM_PROMPT2 = """
 あなたは、ユーザーのリクエストに基づいた観光地をインターネットで調べ提供するアシスタントです。
 利用可能なツールを使用して、調査した情報を説明してください。
 既に知っていることだけに基づいて答えないでください。回答する前にできる限り検索を行ってください。
@@ -145,7 +145,7 @@ def page_ask_my_pdf(llm, prompt):
 def create_agent(llm):
     tools = [search_ddg, fetch_page]
     prompt = ChatPromptTemplate.from_messages([
-        ("system", CUSTOM_SYSTEM_PROMPT),
+        ("system", CUSTOM_SYSTEM_PROMPT2),
         MessagesPlaceholder(variable_name="chat_history"),
         ("user", "{input}"),
         MessagesPlaceholder(variable_name="agent_scratchpad")
