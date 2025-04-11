@@ -82,6 +82,7 @@ def page_pdf_upload_and_build_vector_db():
 
 def main():
     init_page()
+    init_messages()
     page_pdf_upload_and_build_vector_db()
 
 

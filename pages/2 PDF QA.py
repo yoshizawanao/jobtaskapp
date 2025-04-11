@@ -154,7 +154,7 @@ def main():
     for msg in st.session_state['memory'].chat_memory.messages:
         st.chat_message(msg.type).write(msg.content)
 
-    if prompt := st.chat_input(placeholder="2023 FIFA 女子ワールドカップの優勝国は？"):
+    if prompt := st.chat_input(placeholder="湘南の家族連れにおすすめの観光地は？"):
         chain = init_qa_chain()
         st.chat_message("user").write(prompt)
         st.markdown("## Answer")
