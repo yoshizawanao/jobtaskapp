@@ -73,8 +73,10 @@ def init_qa_chain(llm):
     )
     return chain
 
-
-
+def page_ask_my_pdf(llm, prompt):
+    chain = init_qa_chain(llm)
+    st.markdown("## Answer")
+    st.write_stream(chain.stream(prompt))
 
 
 
@@ -145,6 +147,7 @@ def create_agent(llm):
     )
 
 
+
 def main():
     init_page()
     init_messages()
@@ -159,10 +162,8 @@ def main():
         st.chat_message(msg.type).write(msg.content)
 
     if prompt := st.chat_input(placeholder="湘南の家族連れにおすすめの観光地は？"):
-        chain = init_qa_chain(llm)
         st.chat_message("user").write(prompt)
-        st.markdown("## Answer")
-        st.write_stream(chain.stream(prompt))
+        page_ask_my_pdf(llm, prompt)
 
         with st.chat_message("assistant"):
             # コールバック関数の設定 (エージェントの動作の可視化用)
