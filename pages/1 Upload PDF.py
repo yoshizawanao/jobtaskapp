@@ -6,7 +6,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 def init_page():
     st.set_page_config(
-        page_title="Upload PDF(s)",
+        page_title="Upload PDF",
         page_icon="📄"
     )
     st.sidebar.title("Options")
@@ -22,7 +22,7 @@ def get_pdf_text():
     # file_uploader でPDFをアップロードする
     # (file_uploaderの詳細な説明は第6章をご参照ください)
     pdf_files = st.file_uploader(
-        label='Upload your PDF 😇',
+        label='パンフレットをアップロードしてね 😇',
         type='pdf',  # PDFファイルのみアップロード可
         accept_multiple_files=True
     )
@@ -74,7 +74,7 @@ def build_vector_store(pdf_text):
 
 
 def page_pdf_upload_and_build_vector_db():
-    st.title("PDF Upload 📄")
+    st.title("Upload PDF 📄")
     pdf_text = get_pdf_text()
     if pdf_text:
         build_vector_store(pdf_text)

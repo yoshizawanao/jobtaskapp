@@ -73,10 +73,7 @@ def init_qa_chain(llm):
     )
     return chain
 
-def page_ask_my_pdf(llm, prompt):
-    chain = init_qa_chain(llm)
-    st.markdown("## Answer")
-    st.write_stream(chain.stream(prompt))
+
 
 
 
@@ -127,6 +124,23 @@ def init_messages():
             k=10
         )
     
+def page_ask_my_pdf(llm, prompt):
+    chain = init_qa_chain(llm)
+    # st.markdown("## Answer")
+    # answer_container = st.empty()
+    full_response = chain.invoke(prompt)
+    
+    # # ストリーミング表示しながら回答を収集
+    # for chunk in chain.stream(prompt):
+    #     full_response += chunk
+    #     answer_container.markdown(full_response)
+    # st.write_stream(chain.stream(prompt))
+    # answer = chain(prompt)
+    st.session_state['memory'].save_context(
+        {"input": prompt + "(パンフレット参照)"},
+        {"output": full_response}
+    )   
+    return full_response
 
 def create_agent(llm):
     tools = [search_ddg, fetch_page]
@@ -152,20 +166,38 @@ def main():
     init_page()
     init_messages()
     llm=select_model()
-    st.title("PDF QA 🧐")
+    st.title("アドバイザーに質問しよう！ 🧐")
     if "vectorstore" not in st.session_state:
         st.warning("まずは 📄 Upload PDF(s) からPDFファイルをアップロードしてね")
         return
+    
+    with st.chat_message("ai"):
+        st.markdown("""
+                    こんにちは！私は観光地アドバイザーです！  
+                    あなたが行きたい観光地の条件を教えていただけたら、  
+                    1.パンフレットを参照して提案(履歴に(パンフレット参照)と表記されるよ！)   
+                    2.インターネット検索より提案  
+                    の２つの方法であなたに適した観光地を提案させていただきます！  
+                    適切な提案をするために、必ず質問には[場所]を記入してください。    
+                    出来るだけ細かい質問をしてくれるとより具体的な提案が可能です！  
+                    """)
+    
     web_browsing_agent = create_agent(llm)
 
     for msg in st.session_state['memory'].chat_memory.messages:
         st.chat_message(msg.type).write(msg.content)
 
     if prompt := st.chat_input(placeholder="湘南の家族連れにおすすめの観光地は？"):
-        st.chat_message("user").write(prompt)
-        page_ask_my_pdf(llm, prompt)
+        st.chat_message("user").write(prompt + "(パンフレット参照)")
+        # page_ask_my_pdf(llm, prompt)
 
         with st.chat_message("assistant"):
+            answer = page_ask_my_pdf(llm, prompt)
+            st.write(answer)
+
+        st.chat_message("user").write(prompt)
+        
+        with st.chat_message("assistant"):    
             # コールバック関数の設定 (エージェントの動作の可視化用)
             st_cb = StreamlitCallbackHandler(
                 st.container(), expand_new_thoughts=True)
@@ -176,6 +208,7 @@ def main():
                 config=RunnableConfig({'callbacks': [st_cb]})
             )
             st.write(response["output"])
+    
 
 
 
