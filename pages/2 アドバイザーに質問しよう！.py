@@ -60,9 +60,9 @@ def init_qa_chain(llm):
     {question}
     """)
     retriever = st.session_state.vectorstore.as_retriever(
-        # "mmr",  "similarity_score_threshold" などもある
+       
         search_type="similarity",
-        # 文書を何個取得するか (default: 4)
+
         search_kwargs={"k":10}
     )
     chain = (
@@ -130,12 +130,6 @@ def page_ask_my_pdf(llm, prompt):
     # answer_container = st.empty()
     full_response = chain.invoke(prompt)
     
-    # # ストリーミング表示しながら回答を収集
-    # for chunk in chain.stream(prompt):
-    #     full_response += chunk
-    #     answer_container.markdown(full_response)
-    # st.write_stream(chain.stream(prompt))
-    # answer = chain(prompt)
     st.session_state['memory'].save_context(
         {"input": prompt + "(パンフレット参照)"},
         {"output": full_response}

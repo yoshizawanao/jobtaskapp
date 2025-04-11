@@ -35,12 +35,7 @@ def fetch_page(url, page_num=0, timeout_sec=10):
       - has_next: bool
     """
 
-    # response = requests.get(url, timeout=timeout_sec)
-    # response.encoding = 'utf-8'
-    # doc = Document(response.text)
-    # title = doc.title()
-    # html_content = doc.summary()
-    # content = html2text.html2text(html_content)
+    
 
     try:
         response = requests.get(url, timeout=timeout_sec)
@@ -73,14 +68,7 @@ def fetch_page(url, page_num=0, timeout_sec=10):
         chunk_overlap=0,
     )
     chunks = text_splitter.split_text(content)
-    # return {
-    #     "status": 200,
-    #     "page_cotent":{
-    #         "title": title,
-    #         "content": chunks[page_num],
-    #         "has_next": page_num < len(chunks)-1
-    #     }   
-    # }
+    
     if page_num >= len(chunks):
         return {
             "status": 500,
