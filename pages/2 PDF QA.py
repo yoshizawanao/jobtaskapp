@@ -40,11 +40,7 @@ def init_page():
 #             temperature=0, model_name="gpt-4o")
 
 
-
-def init_qa_chain():
-    # llm = select_model()
-    llm = ChatOpenAI(temperature=0, model_name="gpt-4o")
-    prompt = ChatPromptTemplate.from_template("""
+CUSTOM_SYSTEM_PROMPT1 = """
     あなたはユーザーの求める条件にあった観光地を提案するアシスタントです。
     以下の前提知識(観光地のパンフレット)を用いて、ユーザーからの質問に答えてください。
 
@@ -55,27 +51,9 @@ def init_qa_chain():
     ===
     ユーザーからの質問
     {question}
-    """)
-    retriever = st.session_state.vectorstore.as_retriever(
-        # "mmr",  "similarity_score_threshold" などもある
-        search_type="similarity",
-        # 文書を何個取得するか (default: 4)
-        search_kwargs={"k":10}
-    )
-    chain = (
-        {"context": retriever, "question": RunnablePassthrough()}
-        | prompt
-        | llm
-        | StrOutputParser()
-    )
-    return chain
+    """
 
-
-
-
-
-
-CUSTOM_SYSTEM_PROMPT = """
+CUSTOM_SYSTEM_PROMPT2 = """
 あなたは、ユーザーのリクエストに基づいた観光地をインターネットで調べ提供するアシスタントです。
 利用可能なツールを使用して、調査した情報を説明してください。
 既に知っていることだけに基づいて答えないでください。回答する前にできる限り検索を行ってください。
@@ -121,12 +99,38 @@ def init_messages():
             memory_key="chat_history",
             k=10
         )
+        # st.session_state.memory.chat_memory.add_ai_message("こんにちは！なんでも質問をどうぞ！")
     
+def init_qa_chain():
+    # llm = select_model()
+    llm = ChatOpenAI(temperature=0, model_name="gpt-4o")
+    prompt = ChatPromptTemplate.from_template(CUSTOM_SYSTEM_PROMPT1)
+    # prompt = ChatPromptTemplate.from_messages([
+    #     ("system", CUSTOM_SYSTEM_PROMPT1),
+    #     MessagesPlaceholder(variable_name="chat_history"),
+    #     ("user", "{question}"),
+    #     # MessagesPlaceholder(variable_name="agent_scratchpad")
+    # ])
+    retriever = st.session_state.vectorstore.as_retriever(
+        # "mmr",  "similarity_score_threshold" などもある
+        search_type="similarity",
+        # 文書を何個取得するか (default: 4)
+        search_kwargs={"k":10}
+    )
+    chain = (
+        {"context": retriever, "question": RunnablePassthrough(), "chat_history": lambda x: st.session_state['memory'].load_memory_variables({})["chat_history"]}
+        | prompt
+        | llm
+        | StrOutputParser()
+    )
+    return chain
+
+
 
 def create_agent():
     tools = [search_ddg, fetch_page]
     prompt = ChatPromptTemplate.from_messages([
-        ("system", CUSTOM_SYSTEM_PROMPT),
+        ("system", CUSTOM_SYSTEM_PROMPT2),
         MessagesPlaceholder(variable_name="chat_history"),
         ("user", "{input}"),
         MessagesPlaceholder(variable_name="agent_scratchpad")
@@ -146,18 +150,25 @@ def main():
     init_page()
     init_messages()
     st.title("PDF QA 🧐")
-    # if "vectorstore" not in st.session_state:
-    #     st.warning("まずは 📄 Upload PDF(s) からPDFファイルをアップロードしてね")
+    if "vectorstore" not in st.session_state:
+        st.warning("まずは 📄 Upload PDF(s) からPDFファイルをアップロードしてね")
+        return
     # else:
         # page_ask_my_pdf()
+
     web_browsing_agent = create_agent()
 
     for msg in st.session_state['memory'].chat_memory.messages:
         st.chat_message(msg.type).write(msg.content)
 
-    if prompt := st.chat_input(placeholder="2023 FIFA 女子ワールドカップの優勝国は？"):
+
+    if prompt := st.chat_input(placeholder="家族連れにおすすめな湘南の観光地は？"):
         chain = init_qa_chain()
         st.chat_message("user").write(prompt)
+        # with st.chat_message("assistant"):
+        #     st.write_stream(chain.stream(prompt))
+        #     pdf_response = st.write_stream(chain.stream(prompt))
+        #     # st.session_state['memory'].chat_memory.add_ai_message(pdf_response)
         st.markdown("## Answer")
         st.write_stream(chain.stream(prompt))
 
