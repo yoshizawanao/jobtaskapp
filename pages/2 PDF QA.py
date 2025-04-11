@@ -146,10 +146,9 @@ def main():
     init_page()
     init_messages()
     st.title("PDF QA 🧐")
-    # if "vectorstore" not in st.session_state:
-    #     st.warning("まずは 📄 Upload PDF(s) からPDFファイルをアップロードしてね")
-    # else:
-        # page_ask_my_pdf()
+    if "vectorstore" not in st.session_state:
+        st.warning("まずは 📄 Upload PDF(s) からPDFファイルをアップロードしてね")
+        return
     web_browsing_agent = create_agent()
 
     for msg in st.session_state['memory'].chat_memory.messages:
