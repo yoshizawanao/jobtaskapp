@@ -29,21 +29,24 @@ def init_page():
     )
     st.sidebar.title("Options")
 
-# def select_model():
-#     models = ("GPT-4", "GPT-3.5 (not recommended)")
-#     model = st.sidebar.radio("Choose a model:", models)
-#     if model == "GPT-3.5 (not recommended)":
-#         return ChatOpenAI(
-#             temperature=0, model_name="gpt-3.5-turbo")
-#     elif model == "GPT-4":
-#         return ChatOpenAI(
-#             temperature=0, model_name="gpt-4o")
+def select_model():
+    temperature= st.sidebar.slider(
+        "Temperature:", min_value=0.0, max_value=2.0, value=0.0,step=0.01
+    )
+    models = ("GPT-4", "GPT-3.5 (not recommended)")
+    model = st.sidebar.radio("Choose a model:", models)
+    if model == "GPT-3.5 (not recommended)":
+        return ChatOpenAI(
+            temperature=temperature, model_name="gpt-3.5-turbo")
+    elif model == "GPT-4":
+        return ChatOpenAI(
+            temperature=temperature, model_name="gpt-4o")
 
 
 
-def init_qa_chain():
-    # llm = select_model()
-    llm = ChatOpenAI(temperature=0, model_name="gpt-4o")
+def init_qa_chain(llm):
+    llm = llm
+    # llm = ChatOpenAI(temperature=0, model_name="gpt-4o")
     prompt = ChatPromptTemplate.from_template("""
     あなたはユーザーの求める条件にあった観光地を提案するアシスタントです。
     以下の前提知識(観光地のパンフレット)を用いて、ユーザーからの質問に答えてください。
@@ -123,7 +126,7 @@ def init_messages():
         )
     
 
-def create_agent():
+def create_agent(llm):
     tools = [search_ddg, fetch_page]
     prompt = ChatPromptTemplate.from_messages([
         ("system", CUSTOM_SYSTEM_PROMPT),
@@ -131,8 +134,8 @@ def create_agent():
         ("user", "{input}"),
         MessagesPlaceholder(variable_name="agent_scratchpad")
     ])
-    # llm = select_model()
-    llm = ChatOpenAI(temperature=0, model_name="gpt-4o")
+    llm = llm
+    # llm = ChatOpenAI(temperature=0, model_name="gpt-4o")
     agent = create_tool_calling_agent(llm, tools, prompt)
     return AgentExecutor(
         agent=agent,
@@ -145,17 +148,18 @@ def create_agent():
 def main():
     init_page()
     init_messages()
+    llm=select_model()
     st.title("PDF QA 🧐")
     if "vectorstore" not in st.session_state:
         st.warning("まずは 📄 Upload PDF(s) からPDFファイルをアップロードしてね")
         return
-    web_browsing_agent = create_agent()
+    web_browsing_agent = create_agent(llm)
 
     for msg in st.session_state['memory'].chat_memory.messages:
         st.chat_message(msg.type).write(msg.content)
 
     if prompt := st.chat_input(placeholder="湘南の家族連れにおすすめの観光地は？"):
-        chain = init_qa_chain()
+        chain = init_qa_chain(llm)
         st.chat_message("user").write(prompt)
         st.markdown("## Answer")
         st.write_stream(chain.stream(prompt))
